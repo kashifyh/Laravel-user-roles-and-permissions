@@ -1,3 +1,27 @@
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `last_name` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `group_id` int(11) NOT NULL,
+  `username` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `email` varchar(320) COLLATE utf8_unicode_ci NOT NULL,
+  `password` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=16 ;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `first_name`, `last_name`, `group_id`, `username`, `email`, `password`, `created_at`, `updated_at`) VALUES
+(3, 'kashif', 'horani', 1, 'kashif', 'kashifyh@gmail.com', '$2y$08$f7IjMT9Ef5y9QLWzLD7qJu417XJhpQkxafl69aawAmUMw/2HWG076', '2013-12-14 06:16:23', '2013-12-18 05:00:47'),
+(15, 'Muhammad', 'Kashif', 1, 'kashifhorani', 'kashif@gmail.com', '$2y$08$f7IjMT9Ef5y9QLWzLD7qJu417XJhpQkxafl69aawAmUMw/2HWG076', '2013-12-16 09:19:43', '2013-12-16 09:19:43');
+
+
+
+
 CREATE TABLE IF NOT EXISTS `permissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `view` tinyint(4) DEFAULT '0',
