@@ -1,0 +1,140 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Application & Route Filters
+|--------------------------------------------------------------------------
+|
+| Below you will find the "before" and "after" events for the application
+| which may be used to do any work before or after a request into your
+| application. Here you may also register your custom route filters.
+|
+*/
+/*
+Auth: Kashif Horani
+25 Dec 2013
+
+
+*/
+App::before(function ($request) {
+    if (Auth::check()) {
+        $module_id=$g_id='';
+        $g_id = Session::get('userdata')->group_id;
+        $module_name = Request::segment(1);
+        $modules = DB::table('modules')->lists('id', 'name');
+        //print_r($modules);
+        foreach ($modules as $key => $module) {
+            ucfirst($key) . "==>" . ucfirst($module_name);
+            if (ucfirst($key) == ucfirst($module_name)) {
+                $module_id = $module;
+            }
+        }
+        $roles = Permission::where('group_id', '=', $g_id)->where('module_id', '=', $module_id)->get();
+        //print_r($roles);
+        $current_allowed_actions['add'] =
+        $current_allowed_actions['view'] =
+        $current_allowed_actions['edit'] =
+        $current_allowed_actions['delete'] =
+        $current_allowed_actions['list'] = 0;
+        if (count($roles) > 0) {
+            foreach ($roles as $role) {
+                //print_r($role->edit);
+                $current_allowed_actions['add'] = $role->add;
+                $current_allowed_actions['view'] = $role->view;
+                $current_allowed_actions['edit'] = $role->edit;
+                $current_allowed_actions['delete'] = $role->delete;
+                $current_allowed_actions['list'] = $role->list;
+            }
+            Session::set("current_allowed_actions",$current_allowed_actions );
+        }else{
+            echo "Permissions not found";
+            //return Redirect::to('login')->withErrors("you don't have enough permissions");
+        }
+        $actions=explode("/",Request::getPathInfo());
+        foreach($actions as $action){
+            if ($action == 'create') {
+                if($current_allowed_actions['add']!='1')
+                    return View::make('error');
+            }elseif($action == 'edit') {
+                if($current_allowed_actions['edit']!='1')
+                    return View::make('error');
+            }elseif($action == 'delete') {
+                if($current_allowed_actions['delete']!='1')
+                    return View::make('error');
+            }elseif($action == 'view') {
+                if($current_allowed_actions['view']!='1')
+                    return View::make('error');
+            }elseif($action == 'list') {
+                if($current_allowed_actions['list']!='1')
+                    return View::make('error');
+            }
+        }
+    } else {
+        $segment = Request::segment(1);
+        if ($segment != 'login')
+            return Redirect::to('login')->withErrors("Email/Password is not correct.");
+    }
+
+
+
+    //$roles = Permission::where('group_id', '=', $g_id)->take(10)->get();
+    //echo $uri = Request::path();
+
+});
+
+
+App::after(function ($request, $response) {
+    //
+});
+
+/*
+|--------------------------------------------------------------------------
+| Authentication Filters
+|--------------------------------------------------------------------------
+|
+| The following filters are used to verify that the user of the current
+| session is logged into this application. The "basic" filter easily
+| integrates HTTP Basic authentication for quick, simple checking.
+|
+*/
+
+Route::filter('auth', function () {
+    if (Auth::guest()) return Redirect::guest('login');
+});
+
+
+Route::filter('auth.basic', function () {
+    return Auth::basic();
+});
+
+/*
+|--------------------------------------------------------------------------
+| Guest Filter
+|--------------------------------------------------------------------------
+|
+| The "guest" filter is the counterpart of the authentication filters as
+| it simply checks that the current user is not logged in. A redirect
+| response will be issued if they are, which you may freely change.
+|
+*/
+
+Route::filter('guest', function () {
+    if (Auth::check()) return Redirect::to('/');
+});
+
+/*
+|--------------------------------------------------------------------------
+| CSRF Protection Filter
+|--------------------------------------------------------------------------
+|
+| The CSRF filter is responsible for protecting your application against
+| cross-site request forgery attacks. If this special token in a user
+| session does not match the one given in this request, we'll bail.
+|
+*/
+
+Route::filter('csrf', function () {
+    if (Session::token() != Input::get('_token')) {
+        throw new Illuminate\Session\TokenMismatchException;
+    }
+});
